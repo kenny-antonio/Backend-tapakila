@@ -4,18 +4,18 @@ const upload = require('../middlewares/multerConfig');
 
 const postEvent = async (req, res) => {
     try {
-        const { title, description, location, date, time, organizer_id, standard_price, standard_quantity, vip_price, vip_quantity, early_bird_price, early_bird_quantity, category, type } = req.body;
+        const { title, description, location, date, time, organizer_id, standard_price, standard_quantity, vip_price, vip_quantity, early_bird_price, early_bird_quantity, type } = req.body;
         
         // Vérifier si un fichier image a été uploadé
         const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
         const query = `
-            INSERT INTO events (title, description, location, date, time, organizer_id, standard_price, standard_quantity, vip_price, vip_quantity, early_bird_price, early_bird_quantity, category, type, image_url)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            INSERT INTO events (title, description, location, date, time, organizer_id, standard_price, standard_quantity, vip_price, vip_quantity, early_bird_price, early_bird_quantity, type, image_url)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             RETURNING *;
         `;
 
-        const values = [title, description, location, date, time, organizer_id, standard_price, standard_quantity, vip_price, vip_quantity, early_bird_price, early_bird_quantity, category, type, imageUrl];
+        const values = [title, description, location, date, time, organizer_id, standard_price, standard_quantity, vip_price, vip_quantity, early_bird_price, early_bird_quantity, type, imageUrl];
 
         const result = await pool.query(query, values);
 
@@ -59,25 +59,25 @@ const getOneEvent = async (req, res) => {
 const updateEvent = async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { title, location, event_date, organizer_id, category, type } = req.body;
+        const { title, location, event_date, organizer_id, type } = req.body;
 
         // Si une image est envoyée, on la gère
         let imageUrl = null;
         if (req.file) {
-            imageUrl = `/uploads/${req.file.filename}`;  // Nouvel URL pour l'image
+            imageUrl = `/uploads/${req.file.filename}`;
         }
 
         // Mettre à jour les autres informations
         const result = await pool.query(
-            'UPDATE events SET title=$1, location=$2, event_date=$3, organizer_id=$4, image_url=$5, category=$6, type=$7 WHERE id=$8',
-            [title, location, event_date, organizer_id, imageUrl || null, category, type, id]
+            'UPDATE events SET title=$1, location=$2, event_date=$3, organizer_id=$4, image_url=$5, type=$6 WHERE id=$7',
+            [title, location, event_date, organizer_id, imageUrl || null, type, id]
         );
 
         if (result.rowCount === 0) {
             return res.status(404).json({ message: 'Événement non trouvé' });
         }
 
-        res.status(200).json({ message: `Event updated with ID: ${id}` });
+        res.status(200).json({ message: `Événement mis à jour avec ID: ${id}` });
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ message: 'Erreur serveur lors de la mise à jour de l\'événement' });
